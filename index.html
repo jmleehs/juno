@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>전도기본훈련 등록시스템</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', Apple SD Gothic Neo, sans-serif;
+      background: linear-gradient(135deg, #1a3a6b 0%, #2d6ac4 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 24px 20px 36px;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .card-header { text-align: center; margin-bottom: 28px; }
+    .card-header .logo-wrap { margin-bottom: 14px; }
+    .card-header .logo-wrap img { height: 240px; object-fit: contain; }
+    .card-header h1 { font-size: 90px; color: #1a3a6b; font-weight: 800; letter-spacing: -0.3px; }
+    .card-header p  { color: #718096; font-size: 53px; margin-top: 8px; }
+
+    .alert {
+      display: none; padding: 16px; border-radius: 10px;
+      font-size: 57px; margin-bottom: 22px;
+      line-height: 1.65; white-space: pre-line; font-weight: 500;
+    }
+    .alert.show        { display: flex; align-items: flex-start; gap: 10px; }
+    .alert-success     { background: #f0fff4; border: 1.5px solid #68d391; color: #22543d; }
+    .alert-error       { background: #fff5f5; border: 1.5px solid #fc8181; color: #742a2a; }
+    .alert .alert-icon { font-size: 68px; flex-shrink: 0; margin-top: 1px; }
+
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 57px; font-weight: 600; color: #4a5568; margin-bottom: 12px; }
+    .required::after  { content: ''; }
+    .required::before { content: '* '; color: #e53e3e; }
+
+    input[type="text"], select {
+      width: 100%; padding: 33px 28px;
+      border: 2px solid #e2e8f0; border-radius: 10px;
+      font-size: 60px; font-family: inherit; color: #2d3748;
+      background: #f7fafc;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: #2d6ac4;
+      box-shadow: 0 0 0 3px rgba(45,106,196,.18);
+      background: #fff;
+    }
+    input.error, select.error { border-color: #fc8181; background: #fff5f5; }
+
+    .error-msg      { font-size: 50px; color: #e53e3e; margin-top: 8px; display: none; }
+    .error-msg.show { display: block; }
+    .hint           { font-size: 50px; color: #718096; margin-top: 8px; }
+
+    .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    .form-inline {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .inline-label {
+      flex-shrink: 0;
+      white-space: nowrap;
+      width: 280px;
+      padding-top: 36px;
+      margin-bottom: 0;
+    }
+    .inline-input-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    .inline-input-wrap input {
+      width: 100%;
+    }
+
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 24px 0; }
+
+    .btn {
+      width: 100%; padding: 39px;
+      font-size: 63px; font-weight: 700;
+      border: none; border-radius: 10px;
+      cursor: pointer; transition: all .2s;
+      font-family: inherit; letter-spacing: .5px;
+    }
+    .btn-submit { background: linear-gradient(135deg, #1a3a6b, #2d6ac4); color: #fff; }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(45,106,196,.45);
+    }
+    .btn-submit:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+    .btn-reset { background: #edf2f7; color: #4a5568; margin-top: 10px; }
+    .btn-reset:hover { background: #e2e8f0; }
+
+    .spinner {
+      display: inline-block; width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .card { padding: 20px 16px 32px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="card-header">
+    <div class="logo-wrap">
+      <!-- 로고 이미지: src를 실제 이미지 경로 또는 base64로 교체하세요 -->
+      <img src="logo.png" alt="교회 로고" onerror="this.style.display='none'">
+    </div>
+    <h1>전도기본훈련 등록시스템</h1>
+    <p><span style="color:#e53e3e">*</span> 표시는 필수 입력 항목입니다.</p>
+  </div>
+
+  <div id="alert" class="alert" role="alert">
+    <span class="alert-icon" id="alert-icon"></span>
+    <span id="alert-text"></span>
+  </div>
+
+  <!-- 이름 -->
+  <div class="form-group form-inline">
+    <label for="name" class="required inline-label">이름</label>
+    <div class="inline-input-wrap">
+      <input type="text" id="name" placeholder="이름" maxlength="20" autocomplete="off">
+      <div class="error-msg" id="name-err">이름을 입력해주세요.</div>
+    </div>
+  </div>
+
+  <!-- 교적번호 -->
+  <div class="form-group form-inline">
+    <label for="churchId" class="required inline-label">교적번호</label>
+    <div class="inline-input-wrap">
+      <input type="text" id="churchId" placeholder="교적번호 또는 전화번호" maxlength="20"
+             inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <div class="error-msg" id="churchId-err">교적번호를 입력해주세요.</div>
+    </div>
+  </div>
+
+  <!-- 직분 / 교구 / 차수 -->
+  <div class="form-row3">
+    <div class="form-group">
+      <label for="position" class="required">직분</label>
+      <select id="position">
+        <option value="">-- 선택 --</option>
+        <option>장로</option>
+        <option>안수집사</option>
+        <option>권사</option>
+        <option>서리집사</option>
+        <option>성도</option>
+        <option>교역자</option>
+      </select>
+      <div class="error-msg" id="position-err">직분을 선택해주세요.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="district" class="required">교구</label>
+      <select id="district">
+        <option value="">-- 선택 --</option>
+        <option>1</option><option>2</option><option>3</option>
+        <option>4</option><option>5</option><option>6</option>
+        <option>7</option><option>8</option><option>9</option>
+        <option>10</option><option>11</option><option>12</option>
+        <option>언약가정부</option>
+        <option>신혼가정부</option>
+        <option>청년1부</option>
+        <option>청년2부</option>
+        <option>브릿지</option>
+      </select>
+      <div class="error-msg" id="district-err">교구를 선택해주세요.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="session" class="required">차수</label>
+      <select id="session">
+        <option value="">-- 선택 --</option>
+        <option>1차</option><option>2차</option><option>3차</option>
+        <option>4차</option><option>5차</option><option>6차</option>
+        <option>7차</option>
+      </select>
+      <div class="error-msg" id="session-err">차수를 선택해주세요.</div>
+    </div>
+  </div>
+
+  <!-- 동역교회명 -->
+  <div class="form-group">
+    <label for="partnerChurch">동역교회명</label>
+    <input type="text" id="partnerChurch" placeholder="동역교회명 입력 (선택사항)" maxlength="30">
+  </div>
+
+  <hr>
+
+  <button class="btn btn-submit" id="submitBtn" onclick="submitForm()">등&nbsp;&nbsp;록</button>
+  <button class="btn btn-reset" onclick="resetForm()">초기화</button>
+
+</div>
+
+<script>
+  /* ════════════════════════════════════════════════════════
+     ✅ 여기에 Apps Script 배포 URL을 입력하세요
+        (Apps Script → 배포 → 웹 앱 → URL 복사)
+  ════════════════════════════════════════════════════════ */
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxD5Mjd-rS_efZbOo0iCQ127nJ3jLpH3dF9vA7J61D2yLH6RSZJKm9tQBJ4gzL_9TJboA/exec';
+
+  /* ── 페이지 로드 시 차수 디폴트 설정 ─────────────────── */
+  window.addEventListener('load', function () {
+    fetch(API_URL + '?action=getDefaultSession')
+      .then(function (r) { return r.json(); })
+      .then(function (result) {
+        var sel = document.getElementById('session');
+        if (result.defaultSession) {
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].text === result.defaultSession) {
+              sel.selectedIndex = i;
+              break;
+            }
+          }
+          sel.disabled = true;
+          sel.style.opacity = '1';
+          sel.style.background = '#e8f0fe';
+          sel.style.color = '#1a3a6b';
+          sel.style.fontWeight = 'bold';
+        } else {
+          sel.disabled = false;
+        }
+      })
+      .catch(function () { /* 실패해도 무시 */ });
+  });
+
+  /* ── 유효성 검사 ─────────────────────────────────────── */
+  function validate() {
+    var valid = true;
+    var required = [
+      { id: 'name',     errId: 'name-err',     msg: '이름을 입력해주세요.' },
+      { id: 'churchId', errId: 'churchId-err', msg: '교적번호를 입력해주세요.' },
+      { id: 'session',  errId: 'session-err',  msg: '차수를 선택해주세요.' },
+      { id: 'position', errId: 'position-err', msg: '직분을 선택해주세요.' },
+      { id: 'district', errId: 'district-err', msg: '교구를 선택해주세요.' }
+    ];
+    required.forEach(function (f) {
+      var el  = document.getElementById(f.id);
+      var err = document.getElementById(f.errId);
+      if (!el.value.trim()) {
+        el.classList.add('error'); err.textContent = f.msg; err.classList.add('show'); valid = false;
+      } else {
+        el.classList.remove('error'); err.classList.remove('show');
+      }
+    });
+    var churchIdEl  = document.getElementById('churchId');
+    var churchIdErr = document.getElementById('churchId-err');
+    if (churchIdEl.value.trim() && !/^\d+$/.test(churchIdEl.value.trim())) {
+      churchIdEl.classList.add('error');
+      churchIdErr.textContent = '교적번호는 숫자만 입력 가능합니다.';
+      churchIdErr.classList.add('show');
+      valid = false;
+    }
+    return valid;
+  }
+
+  /* ── 등록 제출 ───────────────────────────────────────── */
+  function submitForm() {
+    hideAlert();
+    if (!validate()) return;
+
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>등록 처리 중...';
+
+    var selSession = document.getElementById('session');
+    var data = {
+      name:          document.getElementById('name').value.trim(),
+      churchId:      document.getElementById('churchId').value.trim(),
+      session:       selSession.options[selSession.selectedIndex].text,
+      position:      document.getElementById('position').value,
+      district:      document.getElementById('district').value,
+      partnerChurch: document.getElementById('partnerChurch').value.trim()
+    };
+
+    fetch(API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },   // text/plain → CORS preflight 없음
+      body: JSON.stringify({ action: 'registerMember', data: data })
+    })
+      .then(function (r) { return r.json(); })
+      .then(onSuccess)
+      .catch(onFailure);
+  }
+
+  /* ── 콜백 ────────────────────────────────────────────── */
+  function onSuccess(result) {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = false; btn.innerHTML = '등&nbsp;&nbsp;록';
+    showAlert(
+      result.success ? 'alert-success' : 'alert-error',
+      result.success ? '✅' : '⚠️',
+      result.message
+    );
+    if (result.success) resetForm(false);
+  }
+
+  function onFailure(err) {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = false; btn.innerHTML = '등&nbsp;&nbsp;록';
+    showAlert('alert-error', '❌', '서버 오류가 발생했습니다: ' + (err.message || String(err)));
+  }
+
+  /* ── Alert 헬퍼 ──────────────────────────────────────── */
+  function showAlert(cls, icon, msg) {
+    var al = document.getElementById('alert');
+    al.className = 'alert show ' + cls;
+    document.getElementById('alert-icon').textContent = icon;
+    document.getElementById('alert-text').textContent = msg;
+    al.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function hideAlert() { document.getElementById('alert').className = 'alert'; }
+
+  /* ── 초기화 ──────────────────────────────────────────── */
+  function resetForm(clearAlert) {
+    if (clearAlert === undefined) clearAlert = true;
+    ['name','churchId','partnerChurch'].forEach(function (id) {
+      document.getElementById(id).value = '';
+      document.getElementById(id).classList.remove('error');
+    });
+    ['session','position','district'].forEach(function (id) {
+      document.getElementById(id).classList.remove('error');
+    });
+    ['name-err','churchId-err','session-err','position-err','district-err'].forEach(function (id) {
+      document.getElementById(id).classList.remove('show');
+    });
+    if (clearAlert) hideAlert();
+  }
+
+  /* ── 실시간 에러 해제 ─────────────────────────────────── */
+  ['name','churchId','session','position','district'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', function () {
+      this.classList.remove('error');
+      var err = document.getElementById(id + '-err');
+      if (err) err.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>
