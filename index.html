@@ -160,7 +160,7 @@
   <!-- 직분 / 교구 / 차수 -->
   <div class="form-row3">
     <div class="form-group">
-      <label for="position" class="required">직분</label>
+      <label for="position" class="required">직분</label>a
       <select id="position">
         <option value="">-- 선택 --</option>
         <option>장로</option>
@@ -224,9 +224,12 @@
 
   /* ── 페이지 로드 시 차수 디폴트 설정 ─────────────────── */
   window.addEventListener('load', function () {
-    fetch(API_URL + '?action=getDefaultSession')
-      .then(function (r) { return r.json(); })
-      .then(function (result) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', API_URL + '?action=getDefaultSession', true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      try {
+        var result = JSON.parse(xhr.responseText);
         var sel = document.getElementById('session');
         if (result.defaultSession) {
           for (var i = 0; i < sel.options.length; i++) {
@@ -243,8 +246,9 @@
         } else {
           sel.disabled = false;
         }
-      })
-      .catch(function () { /* 실패해도 무시 */ });
+      } catch (e) { /* 실패해도 무시 */ }
+    };
+    xhr.send();
   });
 
   /* ── 유효성 검사 ─────────────────────────────────────── */
@@ -296,15 +300,20 @@
       partnerChurch: document.getElementById('partnerChurch').value.trim()
     };
 
-    fetch(API_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' },   // text/plain → CORS preflight 없음
-      body: JSON.stringify({ action: 'registerMember', data: data })
-    })
-      .then(function (r) { return r.json(); })
-      .then(onSuccess)
-      .catch(onFailure);
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('POST', API_URL, true);
+    xhr2.setRequestHeader('Content-Type', 'text/plain');
+    xhr2.onreadystatechange = function () {
+      if (xhr2.readyState !== 4) return;
+      try {
+        var result = JSON.parse(xhr2.responseText);
+        onSuccess(result);
+      } catch (e) {
+        onFailure(new Error('응답 파싱 오류'));
+      }
+    };
+    xhr2.onerror = function () { onFailure(new Error('네트워크 오류')); };
+    xhr2.send(JSON.stringify({ action: 'registerMember', data: data }));
   }
 
   /* ── 콜백 ────────────────────────────────────────────── */
