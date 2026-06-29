@@ -233,10 +233,32 @@
         } else {
           sel.disabled = false;
         }
+        // 시간 제한 체크
+        checkTimeRestriction(result.startTime, result.endTime);
       } catch (e) { /* 실패해도 무시 */ }
     };
     xhr.send();
   });
+
+  /* ── KST 기준 시간 제한 체크 ────────────────────────── */
+  function checkTimeRestriction(startTime, endTime) {
+    if (!startTime || !endTime) return; // 시간 설정 없으면 제한 없음
+    var now = new Date();
+    // KST = UTC+9
+    var kst = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
+    var current = kst.getHours() * 60 + kst.getMinutes();
+    var sp = startTime.split(':'), ep = endTime.split(':');
+    var start = parseInt(sp[0]) * 60 + parseInt(sp[1]);
+    var end   = parseInt(ep[0]) * 60 + parseInt(ep[1]);
+
+    if (current < start || current >= end) {
+      showAlert('alert-error', '🕐',
+        '등록 가능 시간: ' + startTime + ' ~ ' + endTime + '\n현재는 등록 시간이 아닙니다.');
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    }
+  }
 
   /* ── 유효성 검사 ─────────────────────────────────────── */
   function validate() {
